@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Transfer;
+use App\Models\TransferDetail;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -142,6 +143,38 @@ class TransferController extends Controller
 
             //update transfer details
 
+           // get currents details transfer
+           $details= $transfer->transfer_details;
+           // get new details transfer from request
+           $newDetails=$request->transfer_details;
+          
+            $currentDetailsIds=[];
+            $newDetailsIds=[];
+            foreach($details as $detail){
+                $currentDetailsIds[]=$detail->id;
+            }
+            foreach($newDetails as $detail){
+                $newDetailsIds[]=$detail["id"];
+            }
+
+            // get ids to delete
+            $detailsToDelete=array_diff($currentDetailsIds,$newDetailsIds);
+
+            //delete details
+            foreach($detailsToDelete as $detailId){
+                $detail=TransferDetail::find($detailId);
+                $product=Product::find($detail->product_id);
+                if ($oldOperation == "ingreso") {
+                    $product->stock = floatval($product->stock) - floatval($detail["quantity"]);
+                    $product->save();
+                } else {
+                    $product->stock = floatval($product->stock) + floatval($detail["quantity"]);
+                    $product->save();
+                }
+                $detail->delete();
+            }
+
+
             foreach ($request->transfer_details as $transfer_detail) {
                 $transfer->transfer_details()->updateOrCreate([
                     "id" => $transfer_detail["id"]
@@ -156,7 +189,6 @@ class TransferController extends Controller
                 if ($transfer_detail["id"]) {
                     if ($oldOperation == "ingreso") {
                         $product->stock = floatval($product->stock) - floatval($transfer_detail["quantity"]);
-
                         $product->save();
                     } else {
                         $product->stock = floatval($product->stock) + floatval($transfer_detail["quantity"]);
@@ -204,6 +236,19 @@ class TransferController extends Controller
     {
         try {
             $transfer = Transfer::find($id);
+            
+            foreach($transfer->transfer_details as $detail){
+                $product=Product::find($detail->product_id);
+                if ($transfer->operation == "ingreso") {
+                    $product->stock = floatval($product->stock) - floatval($detail["quantity"]);
+                    $product->save();
+                } else {
+                    $product->stock = floatval($product->stock) + floatval($detail["quantity"]);
+                    $product->save();
+                }
+                $detail->delete();
+            }
+
             $transfer->delete();
             return response()->json([
                 "success" => true,

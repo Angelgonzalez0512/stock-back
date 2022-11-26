@@ -4,13 +4,14 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -44,7 +45,7 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-        /**
+    /**
      * get categories paginated or not.
      *
      * @var array<string, string>
@@ -67,5 +68,49 @@ class User extends Authenticatable
     public function scopeByTerm($query, $term)
     {
         return $query->where('name', 'like', "%$term%");
+    }
+
+    /**
+     * get products associated.
+     *
+     * @var array<string, string>
+     */
+
+    public function products()
+    {
+        return $this->hasMany(Product::class, "created_by");
+    }
+
+    /**
+     * get categories associated.
+     *
+     * @var array<string, string>
+     */
+
+    public function categories()
+    {
+        return $this->hasMany(Category::class, "created_by");
+    }
+
+    /**
+     * get transfers associated.
+     *
+     * @var array<string, string>
+     */
+
+    public function transfers()
+    {
+        return $this->hasMany(Transfer::class, "created_by");
+    }
+
+    /**
+     * get transfers details associated.
+     *
+     * @var array<string, string>
+     */
+
+    public function transfer_details()
+    {
+        return $this->hasMany(TransferDetail::class, "created_by");
     }
 }

@@ -41,6 +41,16 @@ class Category extends Model
     }
 
     /**
+     * get products associated.
+     *
+     * @var array<string, string>
+     */
+    public function products()
+    {
+        return $this->hasMany(Product::class, 'category_id');
+    }
+
+    /**
      * filter categories by name.
      *
      * @var array<string, string>

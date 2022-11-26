@@ -40,9 +40,9 @@ class UserController extends Controller
     public function store(Request $request)
     {
         try {
-            $emailExists=User::where("email",$request->email)->get();
-            if(count($emailExists)){
-                return response()->json(["message"=>"El email esta registrado","success"=>false],400);
+            $emailExists = User::where("email", $request->email)->get();
+            if (count($emailExists)) {
+                return response()->json(["message" => "El email esta registrado", "success" => false], 400);
             }
             $user = new User();
             $user->name = $request->name;
@@ -117,6 +117,20 @@ class UserController extends Controller
     public function destroy($id)
     {
         //
+        try {
+            $user = User::find($id);
+            $countProducts= $user->products()->count();
+            $countCategories = $user->categories()->count();
+            $countTransfer = $user->transfers()->count();
+            $countTransferDetails= $user->transfer_details()->count();
+            if($countCategories > 0 || $countProducts > 0 || $countTransfer > 0 || $countTransferDetails > 0){
+                throw new Exception("No se puede eliminar el usuario porque tiene datos asociados");
+            }
+            $user->delete();
+            return response()->json(["success" => true, "message" => "User deleted successfully"]);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage(), "success" => false], 500);
+        }
     }
 
     /**

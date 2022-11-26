@@ -92,6 +92,10 @@ class CategoryController extends Controller
     {
         try{
             $category=Category::findOrFail($id);
+            $productExist=$category->products()->count();
+            if($productExist>0){
+                throw new Exception("No se puede eliminar la categoria porque tiene productos asociados");
+            }
             $category->delete();
             return response()->json(["success"=>true,"message"=>"Category deleted successfully"],200);
         }catch(Exception $e){
