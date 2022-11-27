@@ -25,6 +25,7 @@
         "DB_PORT":"3306",
         "DB_DATABASE":"sql10381969",
         "DB_USERNAME":"sql10381969",
-        "DB_PASSWORD":"4ahpMjZWgX"
+        "DB_PASSWORD":"4ahpMjZWgX",
+        "NODE_PATH": "node"
     }
 }
