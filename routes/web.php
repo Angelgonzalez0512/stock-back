@@ -30,11 +30,4 @@ Route::get("clear",function(){
     //clear view
     Artisan::call('view:clear');
 });
-Route::group(["middleware" => "auth:api","prefix"=>"api"], function () {
-    Route::post("/user/logout", [UserController::class, "logout"]);
-    Route::get("/user/authenticated", [UserController::class, "userAutenticated"]);
-    Route::resource("/user", UserController::class)->except(["create", "edit"]);
-    Route::resource("product", ProductController::class)->except(["create", "edit"]);
-    Route::resource("category", CategoryController::class)->except("create", "edit");
-    Route::resource("transfer", TransferController::class)->except(["create", "edit"]);
-});
+
