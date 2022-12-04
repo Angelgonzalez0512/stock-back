@@ -1,6 +1,8 @@
 <?php
 
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,4 +17,16 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+Route::get("clear",function(){
+
+    //clear cache
+    Artisan::call('cache:clear');
+    //clear config
+    Artisan::call('config:clear');
+    //clear route
+    Artisan::call('route:clear');
+    //clear view
+    Artisan::call('view:clear');
 });
