@@ -19,7 +19,9 @@ class TransferController extends Controller
     public function index(Request $request)
     {
         try {
-            $transfers = Transfer::with("user")->paginateOrNot($request->paginate, $request->per_page);
+            $transfers = Transfer::with("user")
+                ->byUser($request->user_id)
+                ->paginateOrNot($request->paginate, $request->per_page);
             return response()->json($transfers, 200);
         } catch (Exception $e) {
             return response()->json([
@@ -44,10 +46,6 @@ class TransferController extends Controller
             $transfer = new Transfer();
             $transfer->supplier = isset($request->supplier) ? $request->supplier : "";
             $transfer->code = random_int(1000, 20000);
-            $transfer->total = $request->total;
-            $transfer->tax = 0;
-            $transfer->discount = 0;
-            $transfer->discount_type = "percent";
             $transfer->operation = $request->operation;
             $transfer->notes = $request->notes;
             $transfer->created_by = $request->user()->id;
@@ -58,8 +56,6 @@ class TransferController extends Controller
                 $transfer->transfer_details()->create([
                     "product_id" => $transfer_detail["product_id"],
                     "quantity" => $transfer_detail["quantity"],
-                    "price" => $transfer_detail["price"],
-                    "total" => $transfer_detail["total"],
                     "created_by" => $request->user()->id,
                 ]);
                 $product = Product::find($transfer_detail["product_id"]);
@@ -68,7 +64,7 @@ class TransferController extends Controller
                 } else {
                     $product->stock -= floatval($transfer_detail["quantity"]);
                 }
-                if($product->stock < 0){
+                if ($product->stock < 0) {
                     return response()->json([
                         "success" => false,
                         "message" => "Stock insuficiente"
@@ -101,9 +97,9 @@ class TransferController extends Controller
     {
         try {
             $transfer = Transfer::findOrfail($id);
-            $details=$transfer->transfer_details;
-            if(count($details)){
-                foreach($details as $detail){
+            $details = $transfer->transfer_details;
+            if (count($details)) {
+                foreach ($details as $detail) {
                     $detail->product;
                 }
             }
@@ -130,12 +126,8 @@ class TransferController extends Controller
         try {
             $transfer = Transfer::find($id);
             $oldOperation = $transfer->operation;
-            $transfer->supplier = $request->supplier;
+            $transfer->supplier = isset($request->supplier) ? $request->supplier : "";
             $transfer->code = $request->code;
-            $transfer->total = $request->total;
-            $transfer->tax = $request->tax;
-            $transfer->discount = $request->discount;
-            $transfer->discount_type = $request->discount_type;
             $transfer->operation = $request->operation;
             $transfer->notes = $request->notes;
             $transfer->created_by = $request->user()->id;
@@ -143,32 +135,32 @@ class TransferController extends Controller
 
             //update transfer details
 
-           // get currents details transfer
-           $details= $transfer->transfer_details;
-           // get new details transfer from request
-           $newDetails=$request->transfer_details;
-          
-            $currentDetailsIds=[];
-            $newDetailsIds=[];
-            foreach($details as $detail){
-                $currentDetailsIds[]=$detail->id;
+            // get currents details transfer
+            $details = $transfer->transfer_details;
+            // get new details transfer from request
+            $newDetails = $request->transfer_details;
+
+            $currentDetailsIds = [];
+            $newDetailsIds = [];
+            foreach ($details as $detail) {
+                $currentDetailsIds[] = $detail->id;
             }
-            foreach($newDetails as $detail){
-                $newDetailsIds[]=$detail["id"];
+            foreach ($newDetails as $detail) {
+                $newDetailsIds[] = $detail["id"];
             }
 
             // get ids to delete
-            $detailsToDelete=array_diff($currentDetailsIds,$newDetailsIds);
+            $detailsToDelete = array_diff($currentDetailsIds, $newDetailsIds);
 
             //delete details
-            foreach($detailsToDelete as $detailId){
-                $detail=TransferDetail::find($detailId);
-                $product=Product::find($detail->product_id);
+            foreach ($detailsToDelete as $detailId) {
+                $detail = TransferDetail::find($detailId);
+                $product = Product::find($detail->product_id);
                 if ($oldOperation == "ingreso") {
-                    $product->stock = floatval($product->stock) - floatval($detail["quantity"]);
+                    $product->stock = floatval($product->stock) - floatval($detail->quantity);
                     $product->save();
                 } else {
-                    $product->stock = floatval($product->stock) + floatval($detail["quantity"]);
+                    $product->stock = floatval($product->stock) + floatval($detail->quantity);
                     $product->save();
                 }
                 $detail->delete();
@@ -176,32 +168,37 @@ class TransferController extends Controller
 
 
             foreach ($request->transfer_details as $transfer_detail) {
+
+                // if detail exists back to before stock of product
+                $product = Product::find($transfer_detail["product_id"]);
+                if ($transfer_detail["id"]) {
+                    $detail = TransferDetail::find($transfer_detail["id"]);
+                    if ($detail) {
+                        if ($oldOperation == "ingreso") {
+                            $product->stock = floatval($product->stock) - floatval($detail->quantity);
+                            $product->save();
+                        } else {
+                            $product->stock = floatval($product->stock) + floatval($detail->quantity);
+                            $product->save();
+                        }
+                    }
+                }
+
                 $transfer->transfer_details()->updateOrCreate([
                     "id" => $transfer_detail["id"]
                 ], [
                     "product_id" => $transfer_detail["product_id"],
                     "quantity" => $transfer_detail["quantity"],
-                    "price" => $transfer_detail["price"],
-                    "total" => $transfer_detail["total"],
                     "created_by" => $request->user()->id,
                 ]);
-                $product = Product::find($transfer_detail["product_id"]);
-                if ($transfer_detail["id"]) {
-                    if ($oldOperation == "ingreso") {
-                        $product->stock = floatval($product->stock) - floatval($transfer_detail["quantity"]);
-                        $product->save();
-                    } else {
-                        $product->stock = floatval($product->stock) + floatval($transfer_detail["quantity"]);
-                        $product->save();
-                    }
-                }
 
+                //update stock of product
                 if ($transfer->operation == "ingreso") {
-                    $product->stock += floatval($transfer_detail["quantity"]);
+                    $product->stock = floatval($product->stock) + floatval($transfer_detail["quantity"]);
                 } else {
-                    $product->stock -= floatval($transfer_detail["quantity"]);
+                    $product->stock = floatval($product->stock) - floatval($transfer_detail["quantity"]);
                 }
-                if($product->stock < 0){
+                if ($product->stock < 0) {
                     return response()->json([
                         "success" => false,
                         "message" => "Stock insuficiente"
@@ -236,9 +233,9 @@ class TransferController extends Controller
     {
         try {
             $transfer = Transfer::find($id);
-            
-            foreach($transfer->transfer_details as $detail){
-                $product=Product::find($detail->product_id);
+
+            foreach ($transfer->transfer_details as $detail) {
+                $product = Product::find($detail->product_id);
                 if ($transfer->operation == "ingreso") {
                     $product->stock = floatval($product->stock) - floatval($detail["quantity"]);
                     $product->save();

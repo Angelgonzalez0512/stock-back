@@ -15,8 +15,6 @@ class TransferDetail extends Model
         "transfer_id",
         "product_id",
         "quantity",
-        "price",
-        "total",
         "created_by",
     ];
 

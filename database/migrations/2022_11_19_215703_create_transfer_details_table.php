@@ -18,8 +18,6 @@ return new class extends Migration
             $table->foreignId("transfer_id")->constrained("transfers");
             $table->foreignId("product_id")->constrained("products");
             $table->decimal("quantity", 10, 2)->default(0);
-            $table->decimal("price", 10, 2)->default(0);
-            $table->decimal("total", 10, 2)->default(0);
             $table->foreignId("created_by")->constrained("users");
             $table->timestamps();
             $table->softDeletes();

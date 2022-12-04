@@ -60,4 +60,15 @@ class Category extends Model
     {
         return $query->where('name', 'like', "%$term%");
     }
+
+    /**
+     * filter categories by user.
+     */
+
+    public function scopeByUser($query, $user){
+        if($user){
+            return $query->where('created_by', $user);
+        }
+        return $query;
+    }
 }

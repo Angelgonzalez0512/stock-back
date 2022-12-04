@@ -17,10 +17,6 @@ return new class extends Migration
             $table->id();
             $table->string("code");
             $table->string("supplier");
-            $table->decimal("total", 10, 2)->default(0);
-            $table->decimal("tax", 10, 2)->default(0);
-            $table->decimal("discount", 10, 2)->default(0);
-            $table->string("discount_type")->default("amount");
             $table->enum("operation", ["ingreso", "salida"]);
             $table->text("notes")->nullable();
             $table->foreignId("created_by")->constrained("users");

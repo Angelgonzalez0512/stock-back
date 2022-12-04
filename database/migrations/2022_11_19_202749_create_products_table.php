@@ -16,13 +16,7 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->string("name");
-            $table->string("barcode");
-            $table->decimal("price", 10, 2)->default(0);
-            $table->decimal("presentation_quantity",10,2);
-            $table->string("presentation")->nullable();
-            $table->decimal("stock", 10, 2)->default(0);
-            $table->decimal("min_stock", 10, 2)->default(0);
-            $table->decimal("max_stock", 10, 2)->default(0);
+            $table->integer("stock")->default(0);
             $table->string("brand")->nullable();
             $table->foreignId("category_id")->constrained("categories");
             $table->string("unit")->nullable();

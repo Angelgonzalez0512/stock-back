@@ -16,7 +16,11 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         try {
-            $products = Product::with("category")->byTerm($request->term)->byCategory($request->category)->paginateOrNot($request->paginate, $request->per_page);
+            $products = Product::with("category")
+            ->byTerm($request->term)
+            ->byCategory($request->category)
+            ->byUser($request->user_id)
+            ->paginateOrNot($request->paginate, $request->per_page);
             return response()->json($products, 200);
         } catch (Exception $e) {
             return response()->json([
@@ -39,13 +43,7 @@ class ProductController extends Controller
 
             $product = new Product();
             $product->name = $request->name;
-            $product->barcode = $request->barcode;
-            $product->price = $request->price;
-            $product->presentation_quantity = 0;
-            $product->presentation = $request->presentation;
             $product->stock = $request->stock;
-            $product->min_stock = $request->min_stock;
-            $product->max_stock = $request->max_stock;
             $product->brand = $request->brand;
             $product->category_id = $request->category_id;
             $product->unit = $request->unit;
@@ -97,13 +95,7 @@ class ProductController extends Controller
         try {
             $product = Product::find($id);
             $product->name = $request->name;
-            $product->barcode = $request->barcode;
-            $product->price = $request->price;
-            $product->presentation_quantity = 0;
-            $product->presentation = $request->presentation;
             $product->stock = $request->stock;
-            $product->min_stock = $request->min_stock;
-            $product->max_stock = $request->max_stock;
             $product->brand = $request->brand;
             $product->category_id = $request->category_id;
             $product->unit = $request->unit;

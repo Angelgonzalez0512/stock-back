@@ -14,13 +14,7 @@ class Product extends Model
     public $table = "products";
     protected $fillable = [
         "name",
-        "barcode",
-        "price",
-        "presentation_quantity",
-        "presentation",
         "stock",
-        "min_stock",
-        "max_stock",
         "brand",
         "category_id",
         "unit",
@@ -79,5 +73,18 @@ class Product extends Model
         if ($category) {
             return $query->where('category_id', $category);
         }
+    }
+
+    /**
+     * filter products by user.
+     *
+     * @var array<string, string>
+     */
+    public function scopeByUser($query, $user=null)
+    {
+        if ($user) {
+            return $query->where('created_by', $user);
+        }
+        return $query;
     }
 }

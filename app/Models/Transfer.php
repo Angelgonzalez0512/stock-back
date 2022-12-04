@@ -16,10 +16,6 @@ class Transfer extends Model
     protected $fillable = [
         "supplier",
         "code",
-        "total",
-        "tax",
-        "discount",
-        "discount_type",
         "operation",
         "notes",
         "created_by",
@@ -60,13 +56,21 @@ class Transfer extends Model
     public function scopeSearch($query, $search)
     {
         if($search){
-            return $query->where("total", "like", "%$search%")
-                ->orWhere("tax", "like", "%$search%")
-                ->orWhere("discount", "like", "%$search%")
-                ->orWhere("discount_type", "like", "%$search%")
-                ->orWhere("operation", "like", "%$search%")
+            return $query->where("operation", "like", "%$search%")
                 ->orWhere("notes", "like", "%$search%")
                 ->orWhere("created_by", "like", "%$search%");
         }
+    }
+
+    /**
+     * filter transfers by user.
+     *
+     * @var array<string, string>
+     */
+    public function scopeByUser($query, $user=null){
+        if($user){
+            return $query->where("created_by", $user);
+        }
+        return $query;
     }
 }

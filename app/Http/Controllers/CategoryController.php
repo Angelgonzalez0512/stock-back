@@ -16,7 +16,9 @@ class CategoryController extends Controller
     public function index(Request $request)
     {
         //
-        $categories = Category::byTerm($request->term)->paginateOrNot($request->paginate, $request->per_page);
+        $categories = Category::byTerm($request->term)
+        ->byUser($request->user_id)
+        ->paginateOrNot($request->paginate, $request->per_page);
         return response()->json($categories);
     }
 

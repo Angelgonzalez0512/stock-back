@@ -1,12 +1,9 @@
 <?php
 
 use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\TransferController;
-use App\Http\Controllers\TransferDetailController;
 use App\Http\Controllers\UserController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -29,7 +26,5 @@ Route::group(["middleware" => "auth:api"], function () {
     Route::resource("/user", UserController::class)->except(["create", "edit"]);
     Route::resource("product", ProductController::class)->except(["create", "edit"]);
     Route::resource("category", CategoryController::class)->except("create", "edit");
-    Route::resource("customer", CustomerController::class);
     Route::resource("transfer", TransferController::class)->except(["create", "edit"]);
-    Route::resource("transfer_detail", TransferDetailController::class);
 });
