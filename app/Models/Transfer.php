@@ -11,8 +11,7 @@ class Transfer extends Model
     use HasFactory;
     use SoftDeletes;
 
-    public $table="transfers";
-    
+    public $table="transfers";   
     protected $fillable = [
         "supplier",
         "code",

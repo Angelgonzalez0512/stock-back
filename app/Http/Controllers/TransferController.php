@@ -60,17 +60,14 @@ class TransferController extends Controller
                 ]);
                 $product = Product::find($transfer_detail["product_id"]);
                 if ($transfer->operation == "ingreso") {
-                    $product->stock += floatval($transfer_detail["quantity"]);
+                    $product->stock = floatval($product->stock) + floatval($transfer_detail["quantity"]);
                 } else {
-                    $product->stock -= floatval($transfer_detail["quantity"]);
-                }
-                if ($product->stock < 0) {
-                    return response()->json([
-                        "success" => false,
-                        "message" => "Stock insuficiente"
-                    ], 200);
+                    $product->stock = floatval($product->stock) - floatval($transfer_detail["quantity"]);
                 }
                 $product->save();
+                if (floatval($product->stock) < 0) {
+                    throw new Exception("No hay suficiente stock para el producto " . $product->name);
+                }
             }
 
             DB::commit();
@@ -198,13 +195,11 @@ class TransferController extends Controller
                 } else {
                     $product->stock = floatval($product->stock) - floatval($transfer_detail["quantity"]);
                 }
-                if ($product->stock < 0) {
-                    return response()->json([
-                        "success" => false,
-                        "message" => "Stock insuficiente"
-                    ], 200);
-                }
+                
                 $product->save();
+                if (floatval($product->stock) < 0) {
+                    throw new Exception("Stock insuficiente para el producto " . $product->name);
+                }
             }
 
 
